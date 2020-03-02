@@ -12,14 +12,14 @@ import AlamofireImage
 import MessageInputBar
 
 class FeedViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, MessageInputBarDelegate {
-   
+    
     @IBOutlet weak var tableView: UITableView!
     let commentBar = MessageInputBar()
     var showsCommentBar = false
     
     var posts : [PFObject] = []
     var selectedPost: PFObject!
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -57,28 +57,29 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
         query.findObjectsInBackground { (posts, error) in
             if posts != nil {
                 self.posts = posts!
+                self.tableView.reloadData()
             }
         }
     }
     
     
     func messageInputBar(_ inputBar: MessageInputBar, didPressSendButtonWith text: String) {
-            //Create the comment
+        //Create the comment
         
         let comment = PFObject(className: "Comments")
-             comment["text"] = text
-             comment["post"] = selectedPost
-             comment["author"] = PFUser.current()!
-             
-             selectedPost.add(comment, forKey: "comment")
-             
-            selectedPost.saveInBackground { (success, error) in
-                 if success {
-                     print("Comment saved")
-                 } else {
-                     print("Error saving comment")
-                 }
-             
+        comment["text"] = text
+        comment["post"] = selectedPost
+        comment["author"] = PFUser.current()!
+        
+        selectedPost.add(comment, forKey: "comment")
+        
+        selectedPost.saveInBackground { (success, error) in
+            if success {
+                print("Comment saved")
+            } else {
+                print("Error saving comment")
+            }
+            
         }
         tableView.reloadData()
         
@@ -101,14 +102,13 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
     func numberOfSections(in tableView: UITableView) -> Int {
         return posts.count
     }
-        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-            let post = posts[indexPath.section]
-            let comments = (post["comments"] as? [PFObject]) ?? []
-            
-            if indexPath.section == 0{
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let post = posts[indexPath.section]
+        let comments = (post["comments"] as? [PFObject]) ?? []
+        
+        if indexPath.section == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "PostCell") as! PostCell
-            
-            
             
             let user = post["author"] as! PFUser
             cell.usernameLabel.text = user.username
@@ -120,57 +120,57 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
             let url = URL(string:urlString)!
             
             cell.photoImage.af_setImage(withURL: url)
-        
-        return cell
-            } else if indexPath.section <= comments.count {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "CommentCell") as! CommentCell
-                
-                
-                let comment = comments[indexPath.section - 1]
-                cell.commentLabel.text = comment["text"] as? String
-                
-                let user = comment["author"] as! PFUser
-                cell.nameLabel.text = user.username
-                
-                
-                return cell
-            } else {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "AddCommentCell")!
-                
-                return cell
-            }
-}
+            
+            return cell
+        } else if indexPath.section <= comments.count {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "CommentCell") as! CommentCell
+            
+            
+            let comment = comments[indexPath.section - 1]
+            cell.commentLabel.text = comment["text"] as? String
+            
+            let user = comment["author"] as! PFUser
+            cell.nameLabel.text = user.username
+            
+            
+            return cell
+        } else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "AddCommentCell")!
+            
+            return cell
+        }
+    }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let post = posts[indexPath.section]
         let comments = (post["comments"] as? [PFObject]) ?? []
         
         
         if indexPath.section == comments.count + 1 {
-        showsCommentBar = true
-        becomeFirstResponder()
-        commentBar.inputTextView.becomeFirstResponder()
+            showsCommentBar = true
+            becomeFirstResponder()
+            commentBar.inputTextView.becomeFirstResponder()
             
-        selectedPost = post
-    }
+            selectedPost = post
+        }
         
     }
-        // Do any additional setup after loading the view.
+    // Do any additional setup after loading the view.
     
     
-
+    
     /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-        
+     // MARK: - Navigation
      
-
-        
+     // In a storyboard-based application, you will often want to do a little preparation before navigation
+     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+     // Get the new view controller using segue.destination.
+     // Pass the selected object to the new view controller.
+     }
+     */
+    
+    
+    
+    
     @IBAction func onLogoutButton(_ sender: Any) {
         PFUser.logOutInBackground { (error) in
             self.performSegue(withIdentifier: "logoutSegue", sender: self)
